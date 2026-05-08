@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDPA Team Score</title>
+<style>
+:root {
+  --bg:      #12131a;
+  --surface: #1c1e2a;
+  --card:    #252840;
+  --border:  #2a2d42;
+  --accent:  #e94560;
+  --blue:    #4c9fff;
+  --text:    #eaeaea;
+  --muted:   #7a7a9a;
+  --green:   #4caf50;
+  --yellow:  #ffa726;
+  --red:     #ef5350;
+  --gold:    #ffd700;
+  --silver:  #c0c0c0;
+  --bronze:  #cd7f32;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+.container { max-width: 860px; margin: 0 auto; }
+
+/* HEADER */
+h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: .2rem; }
+.sub { color: var(--muted); font-size: .82rem; margin-bottom: 2rem; }
+
+/* SECTIONS */
+.section { margin-bottom: 1.5rem; }
+.section-label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+  margin-bottom: .6rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: .72rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* VECTOR GRID */
+.vector-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.vec-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .5rem .65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  min-width: 72px;
+}
+.vec-div {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .06em;
+}
+.vec-item input[type="number"] {
+  width: 56px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 600;
+  text-align: center;
+  padding: .25rem 0;
+}
+.vec-item input[type="number"]:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+.vec-item.ref input { border-color: var(--accent); }
+
+/* FILE CARDS */
+.file-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width:520px) { .file-row { grid-template-columns: 1fr; } }
+
+.file-card {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1rem;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.file-card:hover { border-color: var(--blue); }
+.file-card.loaded  { border-style: solid; border-color: var(--green); }
+.file-card.has-err { border-style: solid; border-color: var(--red); }
+
+.file-card input[type="file"] { display: none; }
+.fc-label {
+  font-size: .69rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+  margin-bottom: .4rem;
+}
+.fc-hint {
+  font-size: .68rem;
+  color: var(--muted);
+  margin-top: .3rem;
+  font-style: italic;
+}
+.fc-name {
+  font-size: .85rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* VALIDATION */
+.valid-panel {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: .82rem;
+}
+.valid-ok   { color: var(--green); }
+.valid-err  { display: flex; gap: .5rem; align-items: flex-start; color: var(--red); margin-bottom: .3rem; }
+.valid-err .icon { flex-shrink: 0; }
+
+/* OPTIONS */
+.options-panel {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.cb-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .88rem;
+  cursor: pointer;
+}
+.cb-label input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.btn-calc {
+  padding: .55rem 1.4rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.btn-calc:hover { opacity: .85; }
+
+/* RESULTS */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.results-header h2 { font-size: 1.1rem; }
+.btn-export {
+  padding: .35rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font-size: .82rem;
+  cursor: pointer;
+}
+.btn-export:hover { border-color: var(--text); }
+
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+thead th {
+  background: var(--card);
+  padding: .55rem .8rem;
+  text-align: left;
+  font-size: .71rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+tbody td { padding: .55rem .8rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+tbody tr:hover td { background: var(--card); }
+
+.rk { font-weight: 700; font-size: 1rem; }
+.r1 { color: var(--gold); }
+.r2 { color: var(--silver); }
+.r3 { color: var(--bronze); }
+
+.expand-btn {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  font-size: .75rem; padding: 0;
+}
+.expand-btn:hover { color: var(--text); }
+
+.detail-row td { background: var(--bg) !important; padding: 0; }
+.detail-inner  { padding: .5rem .8rem .75rem 2rem; }
+.detail-inner table { font-size: .78rem; }
+.detail-inner thead th { background: transparent; font-size: .68rem; }
+.detail-inner tbody td { background: transparent; border-color: #1a1c28; }
+.counted-row td { background: rgba(76,159,255,.07) !important; }
+.tag {
+  display: inline-block;
+  font-size: .62rem; font-weight: 700;
+  padding: 1px 5px; border-radius: 3px;
+  margin-left: 4px; vertical-align: middle;
+}
+.tag-in { background: var(--blue); color: #000; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>🎯 IDPA Team Score</h1>
+  <p class="sub">Punteggio a squadre con compensazione per divisione · SSP = 100 (riferimento)</p>
+</header>
+
+<!-- ── VETTORE ── -->
+<div class="section">
+  <div class="section-label">
+    Vettore compensazione divisioni
+    <button class="btn-link" onclick="resetVector()">Ripristina default</button>
+  </div>
+  <div class="vector-grid" id="vectorGrid"></div>
+</div>
+
+<!-- ── FILE ── -->
+<div class="file-row">
+  <div class="file-card" id="card-results" onclick="document.getElementById('inp-results').click()">
+    <div class="fc-label">Risultati PractiScore</div>
+    <div class="fc-name" id="name-results">Seleziona il CSV…</div>
+    <div class="fc-hint">export standard IDPA Match Director</div>
+    <input type="file" id="inp-results" accept=".csv">
+  </div>
+  <div class="file-card" id="card-teams" onclick="document.getElementById('inp-teams').click()">
+    <div class="fc-label">Squadre</div>
+    <div class="fc-name" id="name-teams">Seleziona il CSV…</div>
+    <div class="fc-hint">colonne: nome cognome · tessera idpa · squadra</div>
+    <input type="file" id="inp-teams" accept=".csv">
+  </div>
+</div>
+
+<!-- ── VALIDAZIONE ── -->
+<div class="valid-panel" id="validPanel" style="display:none"></div>
+
+<!-- ── OPZIONI + CALCOLA ── -->
+<div class="options-panel" id="optPanel" style="display:none">
+  <label class="cb-label">
+    <input type="checkbox" id="cbTopN" checked>
+    <span id="topNLabel">Considera solo i migliori N per squadra (N = ?)</span>
+  </label>
+  <button class="btn-calc" onclick="calculate()">Calcola classifica</button>
+</div>
+
+<!-- ── RISULTATI ── -->
+<div id="resultsSection" style="display:none">
+  <div class="results-header">
+    <h2>Classifica Squadre</h2>
+    <button class="btn-export" onclick="exportCSV()">⬇ Esporta CSV dettaglio</button>
+  </div>
+  <div class="table-wrap"><div id="rankTable"></div></div>
+</div>
+
+</div><!-- /container -->
+<script>
+// ─── COSTANTI ───────────────────────────────────────────────────────────────
+const DIVISIONS = ['SSP','ESP','CDP','CCP','CO','REV','BUG','PCC'];
+const DEFAULT_VECTOR = {SSP:100, ESP:101, CDP:89, CCP:90, CO:111, REV:77, BUG:85, PCC:139};
+
+// ─── STATO ──────────────────────────────────────────────────────────────────
+let state = {
+  resultsRaw : null,   // testo CSV risultati
+  teamsRaw   : null,   // testo CSV squadre
+  results    : null,   // array di shooter
+  teamsRaw2  : null,   // array grezzo da CSV squadre
+  errors     : [],     // errori bloccanti
+  minN       : null,   // dimensione squadra più piccola
+  calcData   : null,   // dati ultima calculate()
+};
+
+// ─── VETTORE ────────────────────────────────────────────────────────────────
+function buildVectorUI() {
+  const grid = document.getElementById('vectorGrid');
+  grid.innerHTML = '';
+  DIVISIONS.forEach(div => {
+    const item = document.createElement('div');
+    item.className = 'vec-item' + (div === 'SSP' ? ' ref' : '');
+    item.innerHTML = `
+      <span class="vec-div">${div}</span>
+      <input type="number" id="vec-${div}" value="${DEFAULT_VECTOR[div]}" min="1" max="500" step="1">
+    `;
+    grid.appendChild(item);
+  });
+}
+
+function resetVector() {
+  DIVISIONS.forEach(d => {
+    const el = document.getElementById(`vec-${d}`);
+    if (el) el.value = DEFAULT_VECTOR[d];
+  });
+}
+
+function readVector() {
+  const v = {};
+  DIVISIONS.forEach(d => {
+    const el = document.getElementById(`vec-${d}`);
+    v[d] = parseFloat(el?.value) || DEFAULT_VECTOR[d];
+  });
+  return v;
+}
+
+// ─── CSV PARSER ─────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const first = text.split('\n')[0];
+  const sep = (first.match(/;/g)||[]).length > (first.match(/,/g)||[]).length ? ';' : ',';
+
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  const push = () => { row.push(field.trim()); field = ''; };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (inQ && text[i+1] === '"') { field += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === sep && !inQ) { push(); }
+    else if ((c === '\n' || (c === '\r' && text[i+1] === '\n')) && !inQ) {
+      if (c === '\r') i++;
+      push();
+      if (row.some(f => f !== '')) rows.push(row);
+      row = [];
+    } else { field += c; }
+  }
+  push();
+  if (row.some(f => f !== '')) rows.push(row);
+
+  const headers = rows[0] || [];
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = (r[i] || '').trim());
+    return obj;
+  });
+}
+
+// ─── PARSE RISULTATI ────────────────────────────────────────────────────────
+function parseResults(text) {
+  const rows = parseCSV(text);
+  return rows
+    .filter(r => r['Completed'] === '1' && r['DNF'] !== '1')
+    .map(r => ({
+      lastName  : (r['Last Name']  || '').trim(),
+      firstName : (r['First Name'] || '').trim(),
+      idpaId    : (r['IDPA ID']    || '').trim(),
+      division  : (r['Division']   || '').toUpperCase().trim(),
+      cls       : (r['Class']      || '').toUpperCase().trim(),
+      totalScore: parseFloat(r['Total Score']) || 0,
+    }));
+}
+
+// ─── PARSE SQUADRE ──────────────────────────────────────────────────────────
+// Colonne (sep auto): nome cognome ; tessera idpa ; squadra
+function parseTeamsCSV(text) {
+  const rows = parseCSV(text);
+  return rows.map(r => {
+    // header flessibile
+    const nome    = (r['nome cognome'] || r['nome'] || r['Nome'] || r['Nome Cognome'] || '').trim();
+    const tessera = (r['tessera idpa'] || r['tessera_idpa'] || r['tessera'] || r['IDPA ID'] || r['IDPA_ID'] || '').trim();
+    const squadra = (r['squadra'] || r['nome_squadra'] || r['Squadra'] || r['Team'] || '').trim();
+    return { nome, tessera, squadra };
+  }).filter(r => r.squadra); // ignora righe senza squadra
+}
+
+// ─── LOOKUP HELPERS ─────────────────────────────────────────────────────────
+function buildLookup(results) {
+  const byId    = {};
+  const byFull1 = {};  // "cognome nome"
+  const byFull2 = {};  // "nome cognome"
+  results.forEach(r => {
+    if (r.idpaId) byId[r.idpaId.toLowerCase()] = r;
+    byFull1[`${r.lastName} ${r.firstName}`.toLowerCase().trim()] = r;
+    byFull2[`${r.firstName} ${r.lastName}`.toLowerCase().trim()] = r;
+  });
+  return { byId, byFull1, byFull2 };
+}
+
+function lookupByName(nome, lk) {
+  const n = nome.toLowerCase().trim();
+  return lk.byFull1[n] || lk.byFull2[n] || null;
+}
+
+function nameof(r) { return `${r.lastName} ${r.firstName}`.trim(); }
+
+// ─── VALIDAZIONE E JOIN ──────────────────────────────────────────────────────
+function validate() {
+  const errors = [];
+  state.minN   = null;
+
+  if (!state.results || !state.teamsRaw2) {
+    renderValid(null);
+    return;
+  }
+
+  const lk = buildLookup(state.results);
+  const vector = readVector();
+
+  // Raggruppa squadre
+  const teamsMap = {};
+  state.teamsRaw2.forEach(m => {
+    if (!teamsMap[m.squadra]) teamsMap[m.squadra] = [];
+    teamsMap[m.squadra].push(m);
+  });
+
+  const resolvedTeams = {};
+
+  for (const [sq, members] of Object.entries(teamsMap)) {
+    // 1) Dimensione minima
+    if (members.length < 3) {
+      errors.push(`Squadra <b>${sq}</b>: solo ${members.length} tiratore/i nel file (minimo 3).`);
+      continue;
+    }
+
+    resolvedTeams[sq] = [];
+    for (const m of members) {
+      let shooter = null;
+      let via = '';
+
+      if (m.tessera) {
+        shooter = lk.byId[m.tessera.toLowerCase()] || null;
+        if (shooter) via = 'tessera';
+      }
+      if (!shooter && m.nome) {
+        shooter = lookupByName(m.nome, lk);
+        if (shooter) via = 'nome';
+      }
+
+      // 2) Tiratore non trovato
+      if (!shooter) {
+        const chi = m.nome || m.tessera || '?';
+        errors.push(`Squadra <b>${sq}</b> · tiratore <b>"${chi}"</b>: non trovato nei risultati PractiScore.`);
+        continue;
+      }
+
+      // 3) Cross-check nome/tessera
+      if (m.tessera && m.nome) {
+        const byT = lk.byId[m.tessera.toLowerCase()];
+        const byN = lookupByName(m.nome, lk);
+        if (byT && byN && byT !== byN) {
+          errors.push(
+            `Squadra <b>${sq}</b> · incongruenza: nome <b>"${m.nome}"</b> corrisponde a` +
+            ` <b>${nameof(byN)}</b>, ma tessera <b>${m.tessera}</b> corrisponde a` +
+            ` <b>${nameof(byT)}</b>.`
+          );
+          continue;
+        }
+      }
+
+      // 4) Divisione nel vettore
+      if (vector[shooter.division] == null) {
+        errors.push(
+          `Squadra <b>${sq}</b> · tiratore <b>${nameof(shooter)}</b>:` +
+          ` divisione <b>${shooter.division}</b> non presente nel vettore.`
+        );
+        continue;
+      }
+
+      resolvedTeams[sq].push({
+        nome     : m.nome || nameof(shooter),
+        tessera  : m.tessera || shooter.idpaId,
+        squadra  : sq,
+        shooter,
+      });
+    }
+  }
+
+  state.errors        = errors;
+  state.resolvedTeams = resolvedTeams;
+
+  if (!errors.length) {
+    // Calcola minN
+    const sizes = Object.values(resolvedTeams).map(arr => arr.length).filter(n => n > 0);
+    state.minN = sizes.length ? Math.min(...sizes) : null;
+  }
+
+  renderValid(errors);
+  renderOptions();
+}
+
+// ─── FILE LOADING ───────────────────────────────────────────────────────────
+function wireFile(inputId, cardId, nameId, key) {
+  document.getElementById(inputId).addEventListener('change', function () {
+    const f = this.files[0];
+    if (!f) return;
+    document.getElementById(nameId).textContent = f.name;
+    const rd = new FileReader();
+    rd.onload = e => {
+      const text = e.target.result;
+      if (key === 'results') {
+        state.results = parseResults(text);
+        document.getElementById(cardId).className = 'file-card loaded';
+      } else {
+        state.teamsRaw2 = parseTeamsCSV(text);
+        // reset risultati sezione
+        document.getElementById('resultsSection').style.display = 'none';
+      }
+      validate();
+    };
+    rd.readAsText(f, 'UTF-8');
+  });
+}
+
+// ─── RENDER VALIDAZIONE ──────────────────────────────────────────────────────
+function renderValid(errors) {
+  const panel = document.getElementById('validPanel');
+  if (!state.results && !state.teamsRaw2) { panel.style.display = 'none'; return; }
+  if (!state.results || !state.teamsRaw2) { panel.style.display = 'none'; return; }
+
+  panel.style.display = '';
+  if (!errors || !errors.length) {
+    const n = Object.keys(state.resolvedTeams || {}).length;
+    const tot = Object.values(state.resolvedTeams || {}).reduce((s, a) => s + a.length, 0);
+    panel.innerHTML = `<span class="valid-ok">✓ File validi — ${n} squadre · ${tot} tiratori trovati nei risultati</span>`;
+    document.getElementById('card-teams').className = 'file-card loaded';
+  } else {
+    panel.innerHTML = errors.map(e =>
+      `<div class="valid-err"><span class="icon">🔴</span><span>${e}</span></div>`
+    ).join('');
+    document.getElementById('card-teams').className = 'file-card has-err';
+  }
+}
+
+// ─── RENDER OPZIONI ─────────────────────────────────────────────────────────
+function renderOptions() {
+  const panel = document.getElementById('optPanel');
+  if (state.errors.length || !state.resolvedTeams) { panel.style.display = 'none'; return; }
+
+  panel.style.display = 'flex';
+  const N = state.minN;
+  const lbl = document.getElementById('topNLabel');
+  if (N != null) {
+    lbl.textContent = `Considera solo i migliori ${N} per squadra (squadra più piccola = ${N})`;
+  } else {
+    lbl.textContent = 'Considera solo i migliori N per squadra';
+  }
+}
+
+// ─── CALCOLO ────────────────────────────────────────────────────────────────
+function calculate() {
+  if (state.errors.length) return;
+
+  const vector = readVector();
+  const topN   = document.getElementById('cbTopN').checked ? state.minN : 0;
+
+  const rankedTeams = [];
+
+  for (const [sq, members] of Object.entries(state.resolvedTeams)) {
+    const withScores = members.map(m => {
+      const coeff = vector[m.shooter.division] ?? 100;
+      const adj   = m.shooter.totalScore * coeff / 100;
+      return { ...m, coeff, adjScore: adj };
+    });
+
+    // TopN: i migliori (punteggio più basso)
+    const sorted  = [...withScores].sort((a, b) => a.adjScore - b.adjScore);
+    const counted = topN > 0 ? sorted.slice(0, topN) : sorted;
+    const teamScore = counted.reduce((s, m) => s + m.adjScore, 0) / counted.length;
+    const countedSet = new Set(counted);
+
+    rankedTeams.push({
+      name: sq,
+      members: withScores,
+      counted: countedSet,
+      teamScore,
+      topN,
+    });
+  }
+
+  rankedTeams.sort((a, b) => a.teamScore - b.teamScore);
+  state.calcData = { rankedTeams, topN };
+
+  renderResults(rankedTeams, topN);
+}
+
+// ─── RENDER RISULTATI ────────────────────────────────────────────────────────
+function fmt(v) { return (v != null && !isNaN(v)) ? v.toFixed(2) + 's' : '—'; }
+
+function renderResults(rankedTeams, topN) {
+  const section = document.getElementById('resultsSection');
+  const table   = document.getElementById('rankTable');
+  section.style.display = '';
+
+  let html = `<table>
+  <thead><tr>
+    <th>Pos</th><th>Squadra</th>
+    <th>${topN ? `Migliori ${topN}` : 'Tutti'}</th>
+    <th>Punteggio</th>
+    <th></th>
+  </tr></thead><tbody>`;
+
+  rankedTeams.forEach((team, idx) => {
+    const pos = idx + 1;
+    const rc  = pos===1?'r1':pos===2?'r2':pos===3?'r3':'';
+    const did = `det-${idx}`;
+
+    html += `<tr>
+      <td class="rk ${rc}">${pos}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${[...team.counted].length} / ${team.members.length}</td>
+      <td><strong>${fmt(team.teamScore)}</strong></td>
+      <td><button class="expand-btn" onclick="toggleDet('${did}')">▼ dettaglio</button></td>
+    </tr>
+    <tr id="${did}" style="display:none" class="detail-row"><td colspan="5">
+      <div class="detail-inner">${buildDetail(team)}</div>
+    </td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  table.innerHTML = html;
+}
+
+function buildDetail(team) {
+  const sorted = [...team.members].sort((a, b) => a.adjScore - b.adjScore);
+  let html = `<table>
+  <thead><tr>
+    <th>Div/Cls</th><th>Tiratore</th><th>Raw</th><th>Coeff</th><th>Punteggio norm.</th>
+  </tr></thead><tbody>`;
+
+  sorted.forEach(m => {
+    const isCounted = team.counted.has(m);
+    const tag  = isCounted ? '<span class="tag tag-in">✓</span>' : '';
+    const rowC = isCounted ? 'counted-row' : '';
+    html += `<tr class="${rowC}">
+      <td>${m.shooter.division}/${m.shooter.cls}</td>
+      <td>${m.nome}${tag}</td>
+      <td>${fmt(m.shooter.totalScore)}</td>
+      <td>${m.coeff}%</td>
+      <td>${fmt(m.adjScore)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  if (team.topN) html += `<p style="font-size:.71rem;color:var(--muted);margin-top:.4rem">✓ = conteggiati nel punteggio squadra</p>`;
+  return html;
+}
+
+function toggleDet(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// ─── EXPORT CSV ─────────────────────────────────────────────────────────────
+function exportCSV() {
+  const data = state.calcData;
+  if (!data) return;
+
+  const BOM = '﻿';
+  let csv = BOM + 'nome cognome;tessera idpa;squadra;punteggio normalizzato tiratore;punteggio squadra\n';
+
+  data.rankedTeams.forEach(team => {
+    const sorted = [...team.members].sort((a, b) => a.adjScore - b.adjScore);
+    sorted.forEach(m => {
+      csv += [
+        `"${m.nome}"`,
+        m.tessera || m.shooter.idpaId || '',
+        `"${team.name}"`,
+        m.adjScore.toFixed(2),
+        team.teamScore.toFixed(2),
+      ].join(';') + '\n';
+    });
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'classifica_squadre.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+buildVectorUI();
+wireFile('inp-results', 'card-results', 'name-results', 'results');
+wireFile('inp-teams',   'card-teams',   'name-teams',   'teams');
+</script>
+</body>
+</html>
